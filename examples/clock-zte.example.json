@@ -1,0 +1,10 @@
+{
+  "label": "example-a",
+  "profile": "zte-g7615v2-webfac-v3",
+  "host": "192.168.1.1",
+  "ntp_server": "192.168.1.2",
+  "expected_model": "ZXHN G7615V2",
+  "username": "telecomadmin",
+  "password": "REPLACE_WITH_PASSWORD_FROM_TECHNICIAN",
+  "allow_time_change": false
+}
