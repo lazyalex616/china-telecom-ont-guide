@@ -24,6 +24,8 @@ Cookie 可以理解成“登录后发给浏览器的小票”。没有带对小�
 
 下面是**这个样本**的流程，不代表所有光猫。
 
+![两段认证、auth_result、JavaScript 写入 ecntToken 和内容框架的先后顺序](../assets/figures/02-login-session.png)
+
 ```text
 打开 80 端口的 LuCI 登录页
         |

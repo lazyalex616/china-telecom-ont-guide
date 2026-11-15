@@ -10,13 +10,13 @@ Copyright (c) 2026 Contributors, MIT; full notice: THIRD_PARTY_NOTICES.md.
 No v1/v2 implementation, firmware writes, solidification or WAN edits.
 """
 
-import base64
+import argparse
 import binascii
-import fcntl
-import hashlib
+import calendar
 import json
 import os
 import re
+import shutil
 import socket
 import stat
 import struct
@@ -44,9 +44,11 @@ def fail(message):
 
 
 def private_ipv4(value):
-    if not isinstance(value, str) or not re.fullmatch(r"(?:\d{1,3}\.){3}\d{1,3}", value):
+    if not isinstance(value, str) or not re.fullmatch(r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}", value):
         fail("地址必须是现场核实过的私有 IPv4，不接受域名、URL 或命令")
     a, b, c, d = (int(v) for v in value.split("."))
+    if value != ".".join(str(v) for v in (a, b, c, d)):
+        fail("管理地址不接受前导零，避免不同网络工具解释不一致")
     if max(a, b, c, d) > 255 or not (a == 10 or (a == 172 and 16 <= b <= 31) or (a == 192 and b == 168)):
         fail("此参考工具只接受私有 IPv4 管理地址")
     return value
@@ -104,17 +106,19 @@ def http_clock():
         parsed = time.strptime(match.group(1).decode().strip(), "%a, %d %b %Y %H:%M:%S GMT")
     except ValueError:
         fail("HTTP Date 格式不受支持")
-    return time.mktime(parsed) - time.timezone
+    return calendar.timegm(parsed)
 
 
-def service_responds():
+def service_state():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.settimeout(2)
         try:
             sock.connect((HOST, 23))
-            return bool(sock.recv(512))
+            return "open"
+        except ConnectionRefusedError:
+            return "closed"
         except OSError:
-            return False
+            return "unknown"
 
 
 class Web:
@@ -353,20 +357,25 @@ class Telnet:
 
 def main():
     global HOST, NTP, BASE
-    os.umask(0o077)
-    args = sys.argv[1:]
-    if not args or args[0].startswith("--") or any(v not in ("--apply", "--force") for v in args[1:]) or len(set(args[1:])) != len(args[1:]):
-        fail("用法：ont-clock.py 私密配置.json [--apply] [--force]")
-    apply = "--apply" in args[1:]
-    force = "--force" in args[1:]
+    parser = argparse.ArgumentParser(description="默认只读光猫与本地 NTP 时钟，写入只支持已核对的 Linux / OpenWrt 样本")
+    parser.add_argument("config", help="本机私密 JSON 配置，凭据不放进命令")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--check-config", action="store_true", help="离线检查结构、占位符和依赖，不发网络请求")
+    mode.add_argument("--apply", action="store_true", help="必要时修正时间，还要求配置显式允许")
+    parser.add_argument("--force", action="store_true", help="仅配合 --apply，明确要求执行修复路径")
+    args = parser.parse_args()
+    apply, force = args.apply, args.force
     if force and not apply:
         fail("--force 必须和明确写入授权 --apply 一起使用")
-    if stat.S_IMODE(os.stat(args[0]).st_mode) & 0o077:
+    if os.name == "posix" and stat.S_IMODE(os.stat(args.config).st_mode) & 0o077:
         fail("配置文件权限必须限制为 600；未读取其内容")
     try:
-        config = json.load(open(args[0], encoding="utf-8-sig"))
+        with open(args.config, encoding="utf-8-sig") as stream:
+            config = json.load(stream)
     except (ValueError, UnicodeError):
         fail("私密配置不是有效 JSON；不回显文件内容")
+    if not isinstance(config, dict):
+        fail("私密配置必须是 JSON 对象，不回显文件内容")
     HOST = private_ipv4(config.get("host"))
     NTP = private_ipv4(config.get("ntp_server"))
     if HOST == NTP:
@@ -374,14 +383,31 @@ def main():
     BASE = "http://%s:8080" % HOST
     if config.get("profile") not in PROFILES or config.get("expected_model") != PROFILES[config["profile"]]:
         fail("配置机型不属于本工具已限定的两个样本")
+    if not isinstance(config.get("allow_time_change"), bool):
+        fail("allow_time_change 必须明确填写 true 或 false")
+    if args.check_config:
+        keys = ["username", "password"]
+        if config["profile"] == "znxt-xg120":
+            keys += ["telnet_username", "telnet_password", "admin_password"]
+        unready = sum(not isinstance(config.get(key), str) or not config[key] or config[key].startswith(("REPLACE_", "REDACTED", "<")) for key in keys)
+        print("离线检查：结构有效；未就绪凭据字段=%d；允许写时间=%s" % (unready, "是" if config["allow_time_change"] else "否"))
+        print("本机依赖：curl=%s；OpenSSL=%s" % ("存在" if shutil.which("curl") else "缺少", "存在" if shutil.which("openssl") else "缺少"))
+        print("没有网络请求，没有验证型号、路由、密码或兼容性。Windows 配置权限需另行用 ACL 限制。")
+        return
+    if apply:
+        if not sys.platform.startswith("linux"):
+            fail("实际写时间只支持 Linux / OpenWrt，没有发送网络请求")
+        if config["allow_time_change"] is not True:
+            fail("配置尚未授权时间修正；没有发送网络请求")
+        import fcntl
+
+        os.umask(0o077)
     reference = ntp_time()
     current = http_clock()
     delta = current - reference
     if not apply:
         print("只读检查：光猫时间=%s UTC；与本地时间源相差 %.2f 秒；没有登录或修改" % (time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(current)), delta))
         return
-    if config.get("allow_time_change") is not True:
-        fail("配置尚未授权时间修正；没有修改")
     if abs(delta) <= 5 and not force:
         print("检查正常：误差 %.2f 秒，无需登录或修改" % delta)
         return
@@ -401,8 +427,8 @@ def main():
     except BlockingIOError:
         print("已有校时任务执行，本轮跳过")
         return
-    if service_responds():
-        fail("目标已有命令服务响应；不接管、不关闭现有用户入口")
+    if service_state() != "closed":
+        fail("目标命令端口已开或状态不明；不接管、不关闭现有入口")
     web = Web(state)
     telnet = None
     opened = False
@@ -442,11 +468,13 @@ def main():
                     # A large clock step can expire the old Web session.
                     web.znxt_login(config, fresh=True)
                     web.telnet_switch(False)
+                if web.telnet_flag() != "No":
+                    cleanup_ok = False
             except Exception:
                 cleanup_ok = False
         if web.temp_requested and telnet is None:
             cleanup_ok = False
-        if (opened or web.temp_requested) and service_responds():
+        if (opened or web.temp_requested) and service_state() != "closed":
             cleanup_ok = False
         if not cleanup_ok:
             print("警告：临时入口清理未确认。不要设置定时任务，请用已授权管理通道核实；不要重置设备。", file=sys.stderr)
@@ -455,7 +483,7 @@ def main():
     delta = http_clock() - ntp_time()
     if abs(delta) > 5:
         fail("HTTP 实际系统时间回读未通过")
-    print("修正并验证完成：真实系统时间误差 %.2f 秒；本次临时入口未再观察到服务响应" % delta)
+    print("修正并验证完成：真实系统时间误差 %.2f 秒；本次临时端口已拒绝连接" % delta)
 
 
 if __name__ == "__main__":

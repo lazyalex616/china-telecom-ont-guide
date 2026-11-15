@@ -4,6 +4,7 @@
 import ast
 import json
 import re
+import struct
 import sys
 import unicodedata
 from pathlib import Path
@@ -47,13 +48,18 @@ def anchors(path):
     return result
 
 
-files = [p for p in ROOT.rglob("*") if p.is_file() and not any(part in (".git", "__pycache__", ".venv") for part in p.relative_to(ROOT).parts)]
+files = [p for p in ROOT.rglob("*") if p.is_file() and not any(part in (".git", "__pycache__", ".venv", "dist") for part in p.relative_to(ROOT).parts)]
 markdown_count = python_count = json_count = link_count = 0
 for path in files:
     rel = path.relative_to(ROOT)
     if path.suffix.lower() in (".har", ".pcap", ".pcapng", ".cfg", ".jar", ".key", ".pfx", ".p12", ".dpapi") or path.name.endswith((".local.json", ".secret.json")):
         problem(path, "发现不应位于公开工作区的运行或原始文件")
-    if path.suffix not in (".md", ".py", ".json") and path.name not in ("LICENSE", ".gitignore", ".gitattributes"):
+    if path.suffix == ".png":
+        raw = path.read_bytes()
+        if raw[:8] != b"\x89PNG\r\n\x1a\n" or len(raw) < 24 or struct.unpack(">II", raw[16:24]) != (1672, 941):
+            problem(path, "技术图不是已审阅的 1672x941 PNG")
+        continue
+    if path.suffix not in (".md", ".py", ".json", ".txt") and path.name not in ("LICENSE", ".gitignore", ".gitattributes"):
         continue
     try:
         raw = path.read_bytes()
@@ -96,7 +102,7 @@ for path in files:
     elif path.suffix == ".md":
         markdown_count += 1
         body = no_fences(text)
-        for target in re.findall(r"(?<!!)\[[^\]]+\]\(([^\s)]+)\)", body):
+        for target in re.findall(r"!?\[[^\]]*\]\(([^\s)]+)\)", body):
             link_count += 1
             parts = urlsplit(target)
             if parts.scheme or target.startswith("//"):

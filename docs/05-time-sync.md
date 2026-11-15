@@ -2,6 +2,10 @@
 
 [返回首页](../README.md)
 
+![校时先只读，再经过双重写入授权，最后回读时钟并核实临时入口关闭](../assets/figures/04-clock-safety.png)
+
+上图表示程序执行顺序，所有读取动作均由本地维护设备发起，不表示 iKuai 会替你读取光猫。先完成普通检查，确需强制验证修复路径时才另用 `--force`。
+
 ## 本章目录
 
 - [先分清三个时钟](#先分清三个时钟)
@@ -292,7 +296,7 @@ Web 超密不是 Telnet 密码的同义词。
 
 目标是你已有的 Linux / OpenWrt / ImmortalWrt 管理设备，需要 Python 3、curl、OpenSSL 和脚本使用的标准库。
 
-不要在 Windows 上直接运行这份包含 `fcntl` 的 Linux 脚本。Windows 可以通过你已有的、验证过的 SSH 通道控制本地 Linux 管理设备。
+Windows 可运行 `--help`、离线 `--check-config` 和默认只读检查，前提是所需的 Python 3 和 curl 已经可用。**实际写时间只支持 Linux / OpenWrt**，文件锁只在写入阶段加载。Windows 用户通过已有安全管理通道，在站点内的 Linux 管理设备上执行写入，不把光猫端口转发到公网。
 
 检查依赖不等于允许自动升级、换源或安装一堆软件。缺什么就明确列出来，按你的授权处理，不要照抄一条 `curl | sh`。
 
@@ -319,11 +323,23 @@ chmod 600 /etc/ont-clock.local.json
 
 ### 3. 先只检查
 
+先做完全不联网的配置检查：
+
+```sh
+python3 ont-clock.py /etc/ont-clock.local.json --check-config
+```
+
+它只报告结构、占位符和本机依赖是否就绪，不输出密码，不验证凭据真伪，也不证明路由或型号正确。在 Windows 中把 `python3` 换为你已安装的 `python`。
+
+确认目标和路径后，下面这条才会发起只读网络请求：
+
 ```sh
 python3 ont-clock.py /etc/ont-clock.local.json
 ```
 
 默认只做两件事：向指定本地时间源取时，读光猫 HTTP 时钟。**不会登录后台，不会打开命令通道，不会校时。**
+
+默认只读阶段不使用 Web 密码。没有响应的命令端口不能当成“已经关闭”，实际修复遇到端口状态不明会停止，不接管已有服务。
 
 它证明的是“运行脚本的设备能取时、能读目标 HTTP 时钟”，不证明光猫自己的原生 NTP 能用。
 

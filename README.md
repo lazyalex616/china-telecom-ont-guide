@@ -24,6 +24,37 @@
 
 本教程不教猜密码、不提供万能密码表，不教绕过运营商授权，也不建议为了一个设置去刷机、恢复出厂或修改光猫的光路身份。
 
+## 直接下载使用，不必先研究整个仓库
+
+**[下载最新正式工具包](https://github.com/lazyalex616/china-telecom-ont-guide/releases/latest) · [解压后从这里开始](START-HERE.md) · [安装与使用详解](docs/11-download-and-use.md)**
+
+| 你想做什么 | Release 里选哪个文件 | 下载后第一步 |
+|---|---|---|
+| 给 Agent 增加这套维护能力 | `telecom-ont-agent-kit-v1.0.0.zip` | 解压，阅读包内 `START-HERE.md`，预览 Skill 安装 |
+| 平台支持导入 Skill 文件 | `telecom-ont-maintenance.skill` | 按平台的导入功能上传，不当成可执行程序 |
+| 离线看全套教程、模板和插图 | `telecom-ont-toolkit-v1.0.0.zip` | 解压后打开 `offline-handbook.html` |
+| 只想阅读，不想装 Python 或 Agent | `telecom-ont-handbook-v1.0.0.html` | 下载后用浏览器打开，图片和样式都已放在文件内 |
+
+安装器只复制这一份 Skill，默认仅预览，不改 Agent 配置、不覆盖已有 Skill、不连接光猫。校时工具另有授权门槛，**安装 Skill 不等于授权改设备**。
+
+### 四张图，解释四个会影响操作结果的机制
+
+![桥接业务路径与管理路径，以及光路、以太网和拨号证据的区别](assets/figures/01-bridge-paths.png)
+
+上图把真正负责拨号的 iKuai、光猫的桥接转发和本地管理路径分开。不是给所有人推荐 ESXi，也不是让你照抄业务参数。
+
+### 登录会话、断网证据与校时边界
+
+![ZN-XG120 样本的两段认证、JavaScript Cookie 和 frame 流程](assets/figures/02-login-session.png)
+
+![光路、以太网、虚拟化及拨号三层断网证据](assets/figures/03-dropout-evidence.png)
+
+![默认只读的校时流程、双重写入授权及本地 NTP 公网访问限制](assets/figures/04-clock-safety.png)
+
+校时图是执行顺序，不是网络拓扑，图中的所有读取动作都由本地维护设备执行。`--force` 是额外的显式修复选项，不属于普通五分钟检查流程。
+
+图片由 GPT 画图工具生成，并按正文核对了中文、协议字段、箭头含义和隐私。它们是机制示意，不是设备截图或新的实测证据。可访问的文字说明见 [图解索引](assets/figures/README.md)。
+
 ## 这份教程想解决什么
 
 你可能遇到过这些事：
@@ -113,12 +144,16 @@
 - 不包含删 WAN、改拨号、关防火墙、刷固件或恢复出厂功能。
 - 不提供 Telnet 默认密码。
 - 临时命令访问只用于修正时间，用完尝试关闭。
+- 新增 `--help` 和离线 `--check-config`，可先看用法、检查配置结构和依赖，不发送网络请求。
+- Windows 可做离线检查和只读时钟读取，实际写时间只支持 Linux / OpenWrt。
 - 只适合已核对型号、固件、网络结构并审查过代码的人使用。
 
 配置格式见：
 
 - [上海中兴样本的配置模板](examples/clock-zte.example.json)
 - [浙江 ZNXT 样本的配置模板](examples/clock-znxt.example.json)
+
+独立 Skill 包还带有 [只读启动提示词](skills/telecom-ont-maintenance/assets/start-readonly.md)、[模块盘点表](skills/telecom-ont-maintenance/assets/read-only-inventory.md)、[变更验收表](skills/telecom-ont-maintenance/assets/change-acceptance.md) 和 [断网证据表](skills/telecom-ont-maintenance/assets/dropout-evidence.md)。这些可以直接复制填写，不需要先编写自己的工作流。
 
 **历史原型的校时路径在这两个实际样本上运行成功；本仓库公开整理版完成的是静态检查，不代表在所有固件或你的设备上实测过。** 部署前请先完整阅读 [校时章节](docs/05-time-sync.md)，不要把“默认只检查”当成“随便在哪台机器上运行都合适”。
 
