@@ -1,54 +1,25 @@
-# 来源、适用范围与第三方说明
+# 来源与第三方说明
 
-## 本教程的案例来源
+这篇教程来自两台已授权光猫的实际维护经历：上海电信的中兴 ZXHN G7615V2，以及浙江电信的 ZNXT ZN-XG120。具体固件和验证范围见 [README](README.md)。
 
-教程按两台已授权设备的维护过程重新编写：上海电信的中兴 ZXHN G7615V2，以及浙江电信的 ZNXT ZN-XG120。
+这里只分享方法、提示词和一份总 Skill，不提供安装脚本、打包的下载工具或设备程序，也不包含真实密码、配置、会话和私人网络规划。
 
-公开材料不包含实际用户凭据、设备唯一标识、站点名称、私人网络规划、原始配置或会话附件。省份和通用型号保留用于说明适用范围。
+## 参考来源
 
-## 中兴临时认证协议
+- 中兴临时维护认证：[qiudz/zte-f7015tv3-telnet-solidify](https://github.com/qiudz/zte-f7015tv3-telnet-solidify) 及其 [webFac v3 协议说明](https://github.com/qiudz/zte-f7015tv3-telnet-solidify/blob/main/docs/webfac-v3-protocol.md)。这里只参考临时认证方法，不推荐执行固化或刷机操作。
+- 爱快 CLI 和配套 Skill：[ikuaidev/ikuai-cli](https://github.com/ikuaidev/ikuai-cli)。使用前核对当前项目说明和自己的路由器版本。
+- SSH 服务：[Dropbear 上游项目](https://github.com/mkj/dropbear) 及其 [完整许可](https://github.com/mkj/dropbear/blob/DROPBEAR_2026.94/LICENSE)。样本安装的是从上游构建的 Dropbear 2026.94。
+- BusyBox 构建来源：[plusls/busybox-static](https://github.com/plusls/busybox-static)。中兴样本使用的程序实际版本是 BusyBox 1.37.0；构建项目的 Release 标签不等于程序版本。
+- Skill 写作结构参考：[Anthropic skill-creator](https://github.com/anthropics/skills/tree/main/skills/skill-creator)。本次核对了上游当前说明和校验规则，总 Skill 由本仓库独立编写。
 
-公开校时工具的中兴路径只实现 `webFac v3 / re_rand` 的临时认证，不包括固化、刷机、分区导出或恢复流程。
+## 许可
 
-主要参考：
+本仓库自己编写的文字按 [MIT 许可证](LICENSE) 提供。引用的项目和读者另行下载的程序仍适用各自的许可，不能用本仓库的 MIT 许可证替代。
 
-- [qiudz/zte-f7015tv3-telnet-solidify](https://github.com/qiudz/zte-f7015tv3-telnet-solidify)
-- [该项目的 webFac v3 协议说明](https://github.com/qiudz/zte-f7015tv3-telnet-solidify/blob/main/docs/webfac-v3-protocol.md)
+没有复制或分发第三方源码、二进制和密钥。以后如果要打包第三方程序，须先核对并保留对应许可。
 
-以上项目采用 MIT 许可证。我们保留其相关许可说明。这个项目的名字含有“固化”，不意味着本教程建议执行固化脚本。
-
-下面这个项目仅作为旧协议和工具适用范围的比较来源：
-
-- [Septrum101/zteOnu](https://github.com/Septrum101/zteOnu)
-
-它当前声明 AGPL-3.0。本公开工具不包含其 v1/v2 实现或密钥池，不应把该项目整体复制后改标为 MIT。
-
-## iKuai CLI
-
-示例 CLI 来源：
-
-- [ikuaidev/ikuai-cli](https://github.com/ikuaidev/ikuai-cli)
-
-当前项目声明 MIT。教程中的命令只是对应版本的使用示意，不保证今后的 CLI、API 和设备固件保持不变。
-
-尤其注意：CLI 帮助、后端参数和设备实际行为可能不完全一致，所有写操作仍须预览、核对并回读。
-
-## Dropbear、Zig 与应用启动框架
-
-[原生应用 SSH 章节](docs/12-native-app-ssh.md) 记录了从上游构建 Dropbear 2026.94 的方法：
-
-- [Dropbear 上游仓库](https://github.com/mkj/dropbear)
-- [对应版本的多功能二进制构建说明](https://github.com/mkj/dropbear/blob/DROPBEAR_2026.94/MULTI.md)
-- [对应版本的完整 LICENSE](https://github.com/mkj/dropbear/blob/DROPBEAR_2026.94/LICENSE)
-- [Zig 0.13.0 发布与下载页](https://ziglang.org/download/0.13.0/)
-
-Dropbear 包含不同来源、不同许可的组件，不能用本仓库的 MIT 标记替代其完整许可。本仓库只提供自己编写的构建说明和启动模板，**没有打包 Dropbear 源码、二进制、Zig 编译器或它们的依赖**；读者自行再分发产物时须核对并保留上游及实际包含组件的全部许可。
-
-`tools/ont-ssh.init` 使用目标系统已有的 `/etc/rc.common` 接口，不包含或替换 OpenWrt 的启动框架。该模板只适用于已核实的 SAF 应用环境，不代表运营商或设备厂商对第三方服务提供支持。
-
-## MIT 上游许可正文
-
-以下是上述 v3 参考项目的 MIT 许可文本：
+<details>
+<summary>中兴 v3 参考项目的 MIT 许可正文</summary>
 
 ```text
 MIT License
@@ -74,11 +45,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## 使用边界
+</details>
 
-- 只维护本人或已明确授权的设备。
-- 必须先取得当前有效超密。
-- 不提供猜密、弱口令表或绕过设备所有者授权的流程。
-- 本教程不是运营商官方配置规范。
-- 厂商、运营商和产品名称属于相应权利人。
-- 文档和代码按现状提供，不能替代对当前设备的检查。
+运营商、厂商和产品名称属于对应权利人。本教程不是运营商或设备厂商的官方操作指南，也不代表它们支持安装第三方服务。
