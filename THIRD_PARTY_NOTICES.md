@@ -1,8 +1,8 @@
 # 来源与第三方说明
 
-这篇教程来自两台已授权光猫的实际维护经历：上海电信的中兴 ZXHN G7615V2，以及浙江电信的 ZNXT ZN-XG120。具体固件和验证范围见 [README](README.md)。
+本教程依据两台已授权光猫的历史维护结果编写：上海电信的中兴 ZXHN G7615V2，以及浙江电信的 ZNXT ZN-XG120。具体固件和验证范围见 [README](README.md)。
 
-这里只分享方法、提示词和一份总 Skill，不提供安装脚本、打包的下载工具或设备程序，也不包含真实密码、配置、会话和私人网络规划。
+本仓库提供方法说明、提示词和一份总 Skill，不提供安装脚本、打包的下载工具或设备程序，不包含真实密码、配置、会话和私人网络规划。
 
 ## 参考来源
 
@@ -10,7 +10,6 @@
 - 爱快 CLI 和配套 Skill：[ikuaidev/ikuai-cli](https://github.com/ikuaidev/ikuai-cli)。使用前核对当前项目说明和自己的路由器版本。
 - SSH 服务：[Dropbear 上游项目](https://github.com/mkj/dropbear) 及其 [完整许可](https://github.com/mkj/dropbear/blob/DROPBEAR_2026.94/LICENSE)。样本安装的是从上游构建的 Dropbear 2026.94。
 - BusyBox 构建来源：[plusls/busybox-static](https://github.com/plusls/busybox-static)。中兴样本使用的程序实际版本是 BusyBox 1.37.0；构建项目的 Release 标签不等于程序版本。
-- Skill 写作结构参考：[Anthropic skill-creator](https://github.com/anthropics/skills/tree/main/skills/skill-creator)。本次核对了上游当前说明和校验规则，总 Skill 由本仓库独立编写。
 
 ## 许可
 
