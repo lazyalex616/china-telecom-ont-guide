@@ -46,7 +46,7 @@ python tools/install-skill.py --target ~/.claude/skills
 没有授权的现有管理通道时先说明限制，不要自动安装、启用插件或切换浏览器。
 ```
 
-如果 Agent 没有识别到 Skill，按它自身的说明重新加载会话或指定 `SKILL.md`，不要为了加载 Skill 随便改整份配置。完整提示词和模板在 `skills/telecom-ont-maintenance/assets/`，完整包另有十段任务提示词。
+如果 Agent 没有识别到 Skill，按它自身的说明重新加载会话或指定 `SKILL.md`，不要为了加载 Skill 随便改整份配置。启动提示词和记录模板在 `skills/telecom-ont-maintenance/assets/`，完整包另有分任务提示词。
 
 ## 4. 高级用户再看校时工具
 
@@ -61,6 +61,14 @@ python tools/ont-clock.py --help
 `--check-config` 只检查本地文件；默认运行会发送 NTP 和 HTTP 只读请求；`--apply` 可能开启临时命令访问并修改光猫时间。三者不是同一权限。写入还要求本机配置 `allow_time_change=true`，仅支持 Linux / OpenWrt 和两个已记录样本。
 
 原型在两个案例中验证过，公开整理版没有再次连接生产设备测试，不保证其他固件即插即用。先读完整校时章节，再决定是否采用。
+
+## 5. 想了解 SSH，先看方法和边界
+
+阅读 [12：原生应用 SSH](docs/12-native-app-ssh.md)。两台样本通过已有合法维护通道，在光猫原生 SAF 应用中安装 Dropbear，实际密钥登录成功；不是刷固件，也不是找到了通用 SSH 开关。
+
+完整包附 `tools/ont-ssh.init`，默认占位地址不能启动。它不是安装器，不包含密钥或 Dropbear 二进制，不适用于未核实的主系统启动目录。只安装 Skill 不会运行它，轻量 Agent 包也不带这个模板。
+
+应用内 root 不等于主系统 root，自启动已注册不等于重启实测通过。安装、临时入口、路由器写入和真实登录验证都要各自获得授权；不能为了发布或读教程去连接生产设备。
 
 ## 下载完整性
 

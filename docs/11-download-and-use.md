@@ -6,10 +6,10 @@
 
 | 文件 | 适合谁 | 包内内容 |
 |---|---|---|
-| `telecom-ont-toolkit-v1.0.0.zip` | 第一次使用，想保留完整材料 | 离线手册、四张技术图、全部章节、Skill、模板、安装器、参考工具 |
-| `telecom-ont-agent-kit-v1.0.0.zip` | 只想给 Agent 安装能力 | 独立 Skill、三份记录表、一份启动提示词、安装器、入门和许可 |
+| `telecom-ont-toolkit-v1.1.0.zip` | 第一次使用，想保留完整材料 | 离线手册、四张技术图、全部章节、Skill、模板、安装器、校时源码及 SSH 启动模板 |
+| `telecom-ont-agent-kit-v1.1.0.zip` | 只想给 Agent 安装能力 | 独立 Skill、含 SSH 在内的四份参考、三份记录表、一份启动提示词、安装器、入门和许可 |
 | `telecom-ont-maintenance.skill` | 平台支持 Skill 文件导入 | 同一 Skill 的 ZIP 格式包，保留目录结构 |
-| `telecom-ont-handbook-v1.0.0.html` | 只阅读或打印 | 单文件图文手册，所有插图和样式内嵌，没有外部字体、脚本或跟踪 |
+| `telecom-ont-handbook-v1.1.0.html` | 只阅读或打印 | 单文件图文手册，所有插图和样式内嵌，没有外部字体、脚本或跟踪 |
 | `SHA256SUMS.txt` | 核对下载是否完整 | 前面四个下载文件的 SHA256 |
 
 GitHub 自动提供的 Source code 是源码快照，不含构建出来的单文件手册。一般用户优先选上表附件，而不是先克隆仓库再自己打包。
@@ -25,6 +25,7 @@ GitHub 自动提供的 Source code 是源码快照，不含构建出来的单文
 - 怎样为 QoS、UPnP、防火墙和校时划定最小改动；
 - 怎样按证据排查断网，而不是先怪光纤；
 - 怎样回读、记录、脱敏和交付。
+- 怎样解释和审阅明确授权后的原生应用 SSH，区分应用权限、主机身份、内网入口及重启验证。
 
 它**不是独立运行的程序，也不替 Agent 提供浏览器、SSH、设备权限或密码**。不同 Agent 对 Skills 的识别方法不同，安装目录必须以你实际使用的平台为准。
 
@@ -74,8 +75,11 @@ python tools/install-skill.py --apply
 | 校时 `--help` / `--check-config` | Python 3.9+ | 不会 |
 | 校时默认只读 | Python 3.9+、curl，且目标与管理路径已确认 | 一个本地 NTP 请求及光猫 HTTP 时钟读取 |
 | 校时 `--apply` | Linux / OpenWrt、所需标准库、curl、OpenSSL | 会认证，必要时临时访问并只改时间 |
+| SSH `ont-ssh.init` | 已逐项核实的 SAF 应用内 `rc.common`，已准备程序与密钥并单独获批 | 只是源码模板，不自动部署；手工配置并启动后会开启 SSH 监听 |
 
 公开整理版的功能检查边界见 [案例结果](10-case-results-and-lessons.md)。打包和语法通过，不等于在所有系统、Agent 或固件上完成行为测试。
+
+完整包包含 SSH 方法和启动模板，但**不包含 Dropbear 可执行文件、客户端私钥、主机密钥或真实站点配置**。轻量 Agent 包和 `.skill` 只含 SSH 的方法参考，不带该启动模板。先读 [第 12 章](12-native-app-ssh.md)，不要因为安装 Skill 就去连接光猫或开服务。
 
 ## 模板怎么用
 
@@ -95,19 +99,19 @@ python tools/install-skill.py --apply
 Windows PowerShell：
 
 ```powershell
-Get-FileHash -Algorithm SHA256 -LiteralPath '.\telecom-ont-toolkit-v1.0.0.zip'
+Get-FileHash -Algorithm SHA256 -LiteralPath '.\telecom-ont-toolkit-v1.1.0.zip'
 ```
 
 Linux：
 
 ```sh
-sha256sum telecom-ont-toolkit-v1.0.0.zip
+sha256sum telecom-ont-toolkit-v1.1.0.zip
 ```
 
 macOS：
 
 ```sh
-shasum -a 256 telecom-ont-toolkit-v1.0.0.zip
+shasum -a 256 telecom-ont-toolkit-v1.1.0.zip
 ```
 
 把完整的 64 位结果与 `SHA256SUMS.txt` 的同名行比较。没有下载其他附件时，不要把“缺少其他文件”当成当前包损坏。
@@ -120,7 +124,7 @@ SHA256SUMS 不是数字签名。如果攻击者能同时替换附件和校验表
 
 安装器只复制了一个目录。确认是自己安装的这份内容后，只移除 `telecom-ont-maintenance` 这一目录即可，不改其他 Skill，不重置 Agent 配置。
 
-本包不会自动部署校时脚本、写入定时任务、开启 NTP 或修改光猫，所以卸载 Skill 不需要操作任何生产设备。若你后来自己部署了额外任务，应按当时的部署记录单独处理。
+本包不会自动部署校时或 SSH、写入定时任务、开启 NTP 或修改光猫，所以卸载 Skill 不需要操作任何生产设备。若你后来自己部署了额外任务或服务，应按当时的部署记录单独处理。
 
 ## 给维护者：重建发行附件
 
@@ -130,7 +134,7 @@ SHA256SUMS 不是数字签名。如果攻击者能同时替换附件和校验表
 
 ```sh
 python tools/check-repository.py
-python tools/build-release.py --version v1.0.0
+python tools/build-release.py --version v1.1.0
 ```
 
 构建器不会联网、连接光猫、安装 Skill 或发布 GitHub。它生成本地附件和图文 Release 正文，发布仍需明确授权并由维护者执行。

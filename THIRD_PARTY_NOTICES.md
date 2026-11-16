@@ -33,7 +33,20 @@
 
 尤其注意：CLI 帮助、后端参数和设备实际行为可能不完全一致，所有写操作仍须预览、核对并回读。
 
-## MIT 上游许可保留
+## Dropbear、Zig 与应用启动框架
+
+[原生应用 SSH 章节](docs/12-native-app-ssh.md) 记录了从上游构建 Dropbear 2026.94 的方法：
+
+- [Dropbear 上游仓库](https://github.com/mkj/dropbear)
+- [对应版本的多功能二进制构建说明](https://github.com/mkj/dropbear/blob/DROPBEAR_2026.94/MULTI.md)
+- [对应版本的完整 LICENSE](https://github.com/mkj/dropbear/blob/DROPBEAR_2026.94/LICENSE)
+- [Zig 0.13.0 发布与下载页](https://ziglang.org/download/0.13.0/)
+
+Dropbear 包含不同来源、不同许可的组件，不能用本仓库的 MIT 标记替代其完整许可。本仓库只提供自己编写的构建说明和启动模板，**没有打包 Dropbear 源码、二进制、Zig 编译器或它们的依赖**；读者自行再分发产物时须核对并保留上游及实际包含组件的全部许可。
+
+`tools/ont-ssh.init` 使用目标系统已有的 `/etc/rc.common` 接口，不包含或替换 OpenWrt 的启动框架。该模板只适用于已核实的 SAF 应用环境，不代表运营商或设备厂商对第三方服务提供支持。
+
+## MIT 上游许可正文
 
 以下是上述 v3 参考项目的 MIT 许可文本：
 

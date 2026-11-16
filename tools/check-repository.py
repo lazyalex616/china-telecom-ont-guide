@@ -49,7 +49,7 @@ def anchors(path):
 
 
 files = [p for p in ROOT.rglob("*") if p.is_file() and not any(part in (".git", "__pycache__", ".venv", "dist") for part in p.relative_to(ROOT).parts)]
-markdown_count = python_count = json_count = link_count = 0
+markdown_count = python_count = json_count = shell_count = link_count = 0
 for path in files:
     rel = path.relative_to(ROOT)
     if path.suffix.lower() in (".har", ".pcap", ".pcapng", ".cfg", ".jar", ".key", ".pfx", ".p12", ".dpapi") or path.name.endswith((".local.json", ".secret.json")):
@@ -59,7 +59,7 @@ for path in files:
         if raw[:8] != b"\x89PNG\r\n\x1a\n" or len(raw) < 24 or struct.unpack(">II", raw[16:24]) != (1672, 941):
             problem(path, "技术图不是已审阅的 1672x941 PNG")
         continue
-    if path.suffix not in (".md", ".py", ".json", ".txt") and path.name not in ("LICENSE", ".gitignore", ".gitattributes"):
+    if path.suffix not in (".md", ".py", ".json", ".txt", ".init") and path.name not in ("LICENSE", ".gitignore", ".gitattributes"):
         continue
     try:
         raw = path.read_bytes()
@@ -80,6 +80,12 @@ for path in files:
             problem(path, "疑似手机号，不显示内容", number)
         if re.search(r"(?i)(?<![0-9a-f])(?:[0-9a-f]{2}:){5}[0-9a-f]{2}(?![0-9a-f])", line):
             problem(path, "发现完整 MAC，公开示例应使用明确遮挡", number)
+        if re.search(r"\b(?:ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp\d+)\s+[A-Za-z0-9+/=]{40,}", line):
+            problem(path, "疑似真实 SSH 公钥，公开示例应使用占位符", number)
+        if re.search(r"\bSHA256:[A-Za-z0-9+/]{40,}", line):
+            problem(path, "疑似真实 SSH 指纹，不显示内容", number)
+        if re.search(r"(?i)\b[A-Z]:[\\/](?:Users|Projects)[\\/]", line):
+            problem(path, "出现个人用户或项目绝对路径", number)
     if path.suffix == ".py":
         python_count += 1
         try:
@@ -99,6 +105,14 @@ for path in files:
             for key, value in data.items():
                 if key.endswith("password") and (not isinstance(value, str) or not value.startswith("REPLACE_")):
                     problem(path, "示例凭据不是明确占位符")
+    elif path.suffix == ".init":
+        shell_count += 1
+        if b"\r" in raw or not text.startswith("#!/bin/sh /etc/rc.common\n"):
+            problem(path, "启动模板必须是 LF 换行的 rc.common 文本")
+        if "LISTEN_ADDRESS='REPLACE_WITH_VERIFIED_ONT_MANAGEMENT_IPV4'" not in text:
+            problem(path, "公开 SSH 模板必须保留不可启动的地址占位符")
+        if "-s -g -j -k -I 600 -K 30" not in text or '-p "$LISTEN_ADDRESS:22"' not in text:
+            problem(path, "SSH 模板缺少受限监听或禁密码、禁转发参数")
     elif path.suffix == ".md":
         markdown_count += 1
         body = no_fences(text)
@@ -130,10 +144,10 @@ else:
         if len(path.read_text(encoding="utf-8").splitlines()) > 300:
             problem(path, "过长 Skill 参考文件需要拆分或目录")
 
-print("静态检查范围：%d 篇 Markdown，%d 个 Python，%d 个 JSON，%d 个链接" % (markdown_count, python_count, json_count, link_count))
+print("静态检查范围：%d 篇 Markdown，%d 个 Python，%d 个 JSON，%d 个启动模板，%d 个链接" % (markdown_count, python_count, json_count, shell_count, link_count))
 if errors:
     for error in errors:
         print("失败：" + error)
     sys.exit(1)
-print("通过：语法、示例、内部链接、基础隐私规则和 Skill 结构")
+print("通过：Python 语法、示例、内部链接、启动模板静态约束、基础隐私规则和 Skill 结构")
 print("说明：未连接任何设备、未运行校时工具、未验证所有外部网页或固件；仍需人工脱敏审阅。")

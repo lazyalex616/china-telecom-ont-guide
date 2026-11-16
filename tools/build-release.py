@@ -24,7 +24,7 @@ REPO = "https://github.com/lazyalex616/china-telecom-ont-guide"
 SKILL = "telecom-ont-maintenance"
 ROOT_FILES = {"README.md", "START-HERE.md", "AGENT-KIT.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "requirements-release.txt"}
 PREFIXES = {"docs/": {".md"}, "examples/": {".md", ".json"}, "assets/figures/": {".md", ".png"},
-            "skills/" + SKILL + "/": {".md", ".txt"}, "tools/": {".py"}, "tests/": {".py"}, "releases/": {".md"}}
+            "skills/" + SKILL + "/": {".md", ".txt"}, "tools/": {".py", ".init"}, "tests/": {".py"}, "releases/": {".md"}}
 
 
 def git(*args):
@@ -182,7 +182,7 @@ def package(path, root, files, metadata, timestamp):
 
 def main():
     parser = argparse.ArgumentParser(description="从干净的已提交源码生成离线发行附件，不联网、不发布")
-    parser.add_argument("--version", required=True, help="例如 v1.0.0")
+    parser.add_argument("--version", required=True, help="例如 v1.1.0")
     parser.add_argument("--output", type=Path, default=ROOT / "dist", help="构建输出目录，已有同名文件不覆盖")
     args = parser.parse_args()
     if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", args.version):
@@ -199,7 +199,7 @@ def main():
         if path.is_symlink() or name.endswith((".local.json", ".secret.json")):
             raise ValueError("白名单中出现链接或私密运行文件")
         files[name] = path.read_bytes()
-    required = {"START-HERE.md", "AGENT-KIT.md", "README.md", "LICENSE", "tools/install-skill.py", "skills/" + SKILL + "/SKILL.md", "releases/" + args.version + ".md"}
+    required = {"START-HERE.md", "AGENT-KIT.md", "README.md", "LICENSE", "tools/install-skill.py", "tools/ont-ssh.init", "docs/12-native-app-ssh.md", "skills/" + SKILL + "/SKILL.md", "skills/" + SKILL + "/references/native-app-ssh.md", "releases/" + args.version + ".md"}
     if required - files.keys():
         raise ValueError("缺少必要发行材料")
     output = args.output.resolve()

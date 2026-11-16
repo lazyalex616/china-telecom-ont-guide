@@ -1,6 +1,6 @@
 # Agent Skill 包：解压后从这里开始
 
-这份包只装一个 Skill，不含校时程序，不会连接或修改光猫。先向装维师傅取得本人或已授权设备当前有效超密，通过安全存储交给 Agent，不贴进聊天日志和报告。
+这份包只装一个 Skill，不含校时程序、SSH 可执行文件或启动模板，不会连接或修改光猫。先向装维师傅取得本人或已授权设备当前有效超密，通过安全存储交给 Agent，不贴进聊天日志和报告。
 
 ## 安装
 
@@ -25,6 +25,8 @@ python tools/install-skill.py --apply
 复制 [只读启动提示词](skills/telecom-ont-maintenance/assets/start-readonly.md) 给你的 Agent，明确本次只读。Agent 必须已有经过授权的管理工具和路径，Skill 不会替它装浏览器或启用插件。
 
 直接使用包内 [盘点表](skills/telecom-ont-maintenance/assets/read-only-inventory.md)、[变更验收表](skills/telecom-ont-maintenance/assets/change-acceptance.md) 和 [断网证据表](skills/telecom-ont-maintenance/assets/dropout-evidence.md)。填写后的内容仍需脱敏，不自动上传。
+
+新增的 [原生应用 SSH 参考](skills/telecom-ont-maintenance/references/native-app-ssh.md) 用于解释方法、划定授权和审阅方案。它不提供自动安装，不能把“怎样连上的”理解成获准修改设备；应用 root 也不等于主系统 root。
 
 如果没有识别到 Skill，按 Agent 自身说明重新加载或指定 `SKILL.md`。不要因此重置全部配置。
 
