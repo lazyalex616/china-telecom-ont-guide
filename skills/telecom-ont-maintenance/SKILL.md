@@ -1,22 +1,22 @@
 ---
 name: telecom-ont-maintenance
-description: 帮用户进上海、浙江电信光猫后台，开 Telnet 和 SSH，再按需要补齐 shell 常用命令。用户说“按这个仓库帮我弄光猫”“光猫开启 Telnet 和 SSH”“补齐光猫 shell”或“路由器后面访问光猫”时使用。按设备情况处理路由、CGI 登录、Dropbear、SAF 应用环境和 BusyBox。
+description: 帮用户进上海、浙江电信光猫后台，开 Telnet 和 SSH，再补全Shell。用户说“按这个仓库帮我弄光猫”“光猫开启 Telnet 和 SSH”“补全Shell”或“路由器后面访问光猫”时使用。按设备情况处理路由、CGI 登录、Dropbear、SAF 应用环境、ash 和 BusyBox。
 compatibility: Agent 能读取仓库文件、执行命令并连到光猫。
 license: MIT
 ---
 
-# 上海、浙江电信光猫：开启 Telnet 和 SSH 补齐shell
+# 上海、浙江电信光猫：开启 Telnet 和 SSH 补全Shell
 
-先看 [README](../../README.md)，按用户的目标进后台、开 Telnet 和 SSH、补常用命令。跟用户说话用自然的短句，直接说做到了哪一步、接下来做什么。
+先看 [README](../../README.md)，按用户的目标进后台、开 Telnet 和 SSH、补全Shell。跟用户说话用自然的短句，直接说做到了哪一步、接下来做什么。
 
-先拿到自己或获准维护那台光猫的超密，再按用户说好的目标做。
+先拿到光猫超密，再开始。
 
 ## 这次用的设备
 
 | 样本 | 固件 | 架构 | 已完成 |
 |---|---|---|---|
 | 上海电信，中兴 ZXHN G7615V2 | `V3.0.0P1T2` | AArch64 / ARM64，小端 | 主系统 Telnet、补充 BusyBox、SAF 应用环境 SSH 登录和命令执行 |
-| 浙江电信·嘉兴，ZNXT ZN-XG120 | `ZV2.01.X01` | MIPS 小端 | 主系统 Telnet、SAF 应用环境 SSH 登录和命令执行；使用原生常用命令 |
+| 浙江电信·嘉兴，ZNXT ZN-XG120 | `ZV2.01.X01` | MIPS 小端 | 主系统 Telnet、SAF 应用环境 SSH 登录和命令执行；使用原生Shell |
 
 两台都配了自启动，还没重启试过。中兴主系统里新加的命令入口，重启后能不能恢复也还没试。
 
@@ -30,7 +30,7 @@ license: MIT
 
 把需要的设置补上，再试一下能不能进后台。
 
-用爱快的话，先看 [ikuai-cli](https://github.com/ikuaidev/ikuai-cli)，在 Agent 所在的电脑装好 CLI 和 Skill。选好要连的路由器，读取现有接口和规则，按当前版本的用法配置。
+用爱快的话，先看 [ikuai-cli](https://github.com/ikuaidev/ikuai-cli)，让Agent在电脑上装好 CLI 和 Skill。选好要连的路由器，读取现有接口和规则，把去光猫后台的路配好。
 
 ## 二、登录后台
 
@@ -63,7 +63,7 @@ ZNXT 这台在后台开 Telnet，再用对应的命令行和管理员账号登�
 
 这次用的是从 [Dropbear 上游](https://github.com/mkj/dropbear) 编译的 2026.94 静态程序。给当前 CPU 准备对应的程序，传过去后核对文件。
 
-光猫自带的 SAF 应用环境里有 `procd` 和 `rc.common`。先从主系统 shell 找到当前应用管理进程、根目录和可写层，再进这个正在运行的环境安装。
+光猫自带的 SAF 应用环境里有 `procd` 和 `rc.common`。先从主系统Shell找到当前应用管理进程、根目录和可写层，再进这个正在运行的环境安装。
 
 1. 看一下现有服务，单独找个目录放程序。
 2. 放好登录用的公钥，给光猫生成自己的主机密钥。
@@ -72,15 +72,32 @@ ZNXT 这台在后台开 Telnet，再用对应的命令行和管理员账号登�
 5. 在电脑上核对主机身份，连一次 SSH，试一下命令。
 6. 记下连接方式和安装位置，把这次临时开的 Telnet 关掉。
 
-## 五、补齐 shell 常用命令
+## 五、补全Shell
 
-看看现有 shell、BusyBox 和命令路径，找出需要补的工具。中兴这台用了 BusyBox 1.37.0，下载来源见 [参考项目](../../THIRD_PARTY_NOTICES.md)；ZNXT 这台用自带的就够了。
+这次用的是ash和BusyBox这套组合。中兴补了BusyBox 1.37.0，带402个工具；ZNXT自带BusyBox 1.35.0，带399个工具。下载来源见 [参考项目](../../THIRD_PARTY_NOTICES.md)。
 
-需要补的话，找好对应架构的程序，单独放一个目录，把命令链接和调用路径配上。先用完整路径试，再试平时直接输入命令的用法，确认文件查看、文字处理和状态检查能用。
+### 补全的Shell有哪些：
+
+1. **ash**：执行命令、跑Shell脚本、连接管道。这次中兴的新ash已通过进程路径核对。
+2. **head、awk、sed**：文件预览、按字段提取和筛选文字，这次已组合使用。
+3. **vi**：在命令行编辑文件。
+4. **nc**：连接TCP、UDP端口并收发数据。
+5. **logger、syslogd**：写入日志、接收和保存系统日志。
+
+### 补全Shell可以：
+
+1. 查看文件，定位配置字段。
+2. 按时间、状态和事件筛选日志。
+3. 编辑配置和Shell脚本。
+4. 检查端口连接和数据收发。
+5. 把重复操作写成ash脚本。
+6. 为日志写入、接收和保存准备工具。
+
+需要补全Shell的话，找好对应架构的BusyBox，单独放一个目录，把命令链接和调用路径配上。先用完整路径试，再试直接输入命令的用法。检查ash、head、awk、sed、vi、nc、logger和syslogd的入口，把用户需要的配好。
 
 ## 做完告诉用户
 
 - 以后怎么进后台、怎么连 SSH。
-- 程序放在哪，自启动怎么配的。
-- 补了哪些命令，怎么用。
+- 装在哪，怎么启动。
+- Shell怎么用，这次补了哪些工具。
 - 哪些已经试过，哪些还没试。
