@@ -13,6 +13,8 @@ https://github.com/lazyalex616/china-telecom-ont-guide
 帮我看看光猫是什么型号、什么固件，现在是谁在拨号。
 
 帮我进光猫开Telnet和SSH再补全Shell。超密我来提供，做好了告诉我怎么连、怎么用。
+
+Telnet连进去以后，先拿到主系统root Shell，看看CPU、固件和SAF应用环境，再装SSH。要改配置的话，先看网页的RSA+AES参数怎么封装，也看看有没有现成的原生命令。需要native-ABI helper时，先对上这台固件的接口，改完把保存值和当前状态都读回来。
 ```
 
 ## 一、这次用的是哪两台光猫
@@ -38,49 +40,7 @@ https://github.com/lazyalex616/china-telecom-ont-guide
 
 可以打10000号找客服要下超密，会给你开个工单给到电信小哥，一般都会愿意给，实在不行加个微信发个红包啥的
 
-## 三、在现在的网络里进光猫后台
-
-这里拿 `192.168.1.1` 举例，你家光猫的地址让 Agent 看一下。
-
-### 1. 直接用光猫上网
-
-手机连光猫的 Wi-Fi，或者电脑直接插在光猫上，打开光猫地址就可以试着进后台。
-
-![手机和电脑直接连接光猫并访问管理地址](assets/figures/03-direct-ont.png)
-
-### 2. 光猫拨号，后面接了个 Wi-Fi 路由器
-
-宽带账号填在光猫里，后面的路由器负责给家里提供 Wi-Fi。
-
-先直接打开光猫地址。进不去的话，让 Agent 看一下后面这台路由器的连接方式、地址和访问设置。
-
-![光猫负责拨号，后级路由器提供 Wi-Fi，家庭设备经路由器访问光猫](assets/figures/04-ont-dials.png)
-
-### 3. 光猫改了桥接，现在是路由器拨号
-
-这种可以让 Agent 看看路由器支不支持自定义路由，也就是静态路由，把去光猫后台的请求发到接光猫的那个口。
-
-有的路由器还要在接光猫的一侧配个地址，让光猫能把回复送回来。这部分交给 Agent 看当前配置，再把需要的设置补上。
-
-![光猫桥接、路由器拨号，以及从家庭设备访问光猫的管理路径](assets/figures/05-router-dials.png)
-
-### 拿爱快举个例子
-
-爱快有个 [ikuai-cli](https://github.com/ikuaidev/ikuai-cli)，带配套 Skill。让Agent在电脑上装好，就可以连路由器、看配置、改设置。
-
-```text
-我用爱快，想在现在的网络里直接进光猫后台。
-
-先看下 https://github.com/ikuaidev/ikuai-cli，把适合我电脑的 CLI 和 Skill 装好。
-
-连上路由器，看看现在是谁在拨号、哪个口接光猫、光猫地址是多少。
-
-把去光猫后台的路配好，看看能不能进。
-```
-
-用别的路由器，就把爱快换成你自己的品牌和型号。
-
-## 四、让 Agent 走 CGI 登录后台
+## 三、让 Agent 走 CGI 登录后台
 
 CGI 是网页服务器把请求交给后台程序处理的一种接口。你在网页上填超密、点登录，浏览器就会把请求发给光猫。让Agent照这个流程来，就能进后台看配置。
 
@@ -92,23 +52,49 @@ CGI 是网页服务器把请求交给后台程序处理的一种接口。你在�
 进去后告诉我光猫型号、固件和拨号方式，卡在哪一步就接着查那一步。
 ```
 
-## 五、开启 Telnet 和 SSH
+## 四、开启 Telnet 和 SSH
 
-Telnet连进去以后，让Agent把SSH装好，再配个自启动。具体两台光猫怎么开、程序装在哪，交给仓库里的 Skill 处理。
+这里要让Agent把过程做全：开Telnet、拿到主系统root Shell、分清应用环境，再把SSH装好。不是看到能输命令，就算拿到整台光猫的主系统了。
+
+### 先用Telnet进主系统
+
+中兴这台用的是`webFac v3`临时维护入口，要用光猫超密完成登录，再拿返回的临时账号连Telnet。ZNXT这台先在后台开Telnet，用对应的命令行账号登录，需要的话再用管理员账号执行`su`。进去后让Agent用`id`核对是不是`UID 0`，也就是root，再看CPU架构、主系统和当前进程环境。
+
+两台的登录字段、换行方式和中兴的`re_rand`处理不一样，具体步骤放在[主系统Shell和原生配置](skills/telecom-ont-maintenance/references/native-shell-config.md)里，Agent可以接着照做。
+
+### 改配置有网页和本机两条路
+
+中兴网页提交配置时，会把参数做RSA+AES封装。让Agent走网页这条路，就要照页面上的JavaScript处理会话、参数和加密，不能把明文表单直接发过去。
+
+已经进了主系统root Shell，就可以再看固件自带的命令和配置接口。比如这次用`sendcmd`改日志配置、保存，再用一个小的**native-ABI helper**启用当前的原生日志发送程序。说白了，helper就是按这台固件内部的调用格式，调一下现成的功能。
+
+这样可以不经过网页那层RSA+AES参数封装，直接从本机处理配置，但不是绕过登录认证。**保存配置和当前生效也要分开看**，网页返回成功、命令没报错，都还要把值读回来，再看实际日志有没有到NAS。
+
+这次helper只核对过中兴`ZXHN G7615V2 / V3.0.0P1T2`的日志接口，不是改什么配置都能用。对应的请求结构、源码和编译方式也放在[详细步骤](skills/telecom-ont-maintenance/references/native-shell-config.md#四用native-abi-helper启用当前日志发送)里。
+
+### 再把SSH装进应用环境
+
+这两台光猫都自带SAF应用环境。让Agent从主系统找到它，把合适架构的Dropbear装进去，放好公钥、生成主机密钥，再用原生启动方式配好自启动。
+
+这次SSH连进去是**应用环境里的root**，和前面Telnet进去的**主系统root Shell**不是一回事。要查主系统进程、改原生配置，先让Agent确认当前在哪个环境里。
+
+![超密登录、临时Telnet、主系统Shell，以及网页配置、本机配置和SAF应用SSH三条路径](assets/figures/06-native-shell-config.png)
 
 ```text
 后台已经进去了，接着帮我开 Telnet 和 SSH。
 
-按这台光猫的型号和固件找到 Telnet 开法，连进去看看。
+先看仓库里的 skills/telecom-ont-maintenance/SKILL.md 和 skills/telecom-ont-maintenance/references/native-shell-config.md，按这台光猫的型号和固件开Telnet。连进去用id核对UID 0，拿到主系统root Shell，再看CPU、现有命令和SAF应用环境。
 
-看看CPU是什么架构、程序能放在哪，把SSH装好，再配个自启动。
+如果要改配置，别只停在网页点按钮。中兴网页用了RSA+AES封装，走CGI就照网页实际的参数和会话流程来；从主系统操作的话，先找固件自带的命令和配置接口。需要native-ABI helper时，先核对型号、固件、调用约定和数据结构，再处理指定的那项配置，保存后把当前状态也读回来。
 
-连一次 SSH，试一下命令，做好了告诉我以后怎么连。
+把合适架构的Dropbear装进现有SAF应用环境，配好SSH、公钥和自启动。分别记清主系统root Shell和应用root能看到什么，不要把应用环境当成主系统。
+
+连一次SSH，试一下命令。改了配置的话，把修改前后、保存状态和实际效果告诉我。做好了记下以后怎么连，再把这次临时开的Telnet关掉。
 ```
 
-SSH 能用了，就把这次临时开的 Telnet 关掉。
+两台都验证过SSH登录，自启动已配置，还没重启试过。
 
-## 六、补全Shell
+## 五、补全Shell
 
 这次补全Shell用的是 **ash + BusyBox**。ash负责执行命令和脚本，BusyBox把查看文件、处理文字、检查网络等工具放在一个程序里。
 
