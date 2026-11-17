@@ -1,17 +1,15 @@
-# 来源与第三方说明
-
-本教程包含方法说明、提示词和总 Skill。设备型号、固件及测试结果见 [README](README.md)。
+# 参考项目和许可
 
 ## 参考来源
 
 - 中兴临时维护认证：[qiudz/zte-f7015tv3-telnet-solidify](https://github.com/qiudz/zte-f7015tv3-telnet-solidify) 及其 [webFac v3 协议说明](https://github.com/qiudz/zte-f7015tv3-telnet-solidify/blob/main/docs/webfac-v3-protocol.md)。
 - 爱快 CLI 和配套 Skill：[ikuaidev/ikuai-cli](https://github.com/ikuaidev/ikuai-cli)。
-- SSH 服务：[Dropbear 上游项目](https://github.com/mkj/dropbear) 及其 [完整许可](https://github.com/mkj/dropbear/blob/DROPBEAR_2026.94/LICENSE)。样本安装的是从上游构建的 Dropbear 2026.94。
-- BusyBox 构建来源：[plusls/busybox-static](https://github.com/plusls/busybox-static)。中兴样本使用 BusyBox 1.37.0。
+- SSH：[Dropbear](https://github.com/mkj/dropbear) 和 [对应版本的许可](https://github.com/mkj/dropbear/blob/DROPBEAR_2026.94/LICENSE)，这次用的是 2026.94。
+- BusyBox：[plusls/busybox-static](https://github.com/plusls/busybox-static)，中兴这台用的是 1.37.0。
 
 ## 许可
 
-本仓库自己编写的文字按 [MIT 许可证](LICENSE) 提供。引用的项目和读者另行下载的程序仍适用各自的许可，不能用本仓库的 MIT 许可证替代。
+仓库里的文字使用 [MIT 许可证](LICENSE)，参考项目和下载的程序按各自的许可使用。
 
 <details>
 <summary>中兴 v3 参考项目的 MIT 许可正文</summary>
@@ -41,5 +39,3 @@ SOFTWARE.
 ```
 
 </details>
-
-运营商、厂商和产品名称属于对应权利人。
