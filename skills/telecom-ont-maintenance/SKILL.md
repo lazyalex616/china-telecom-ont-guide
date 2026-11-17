@@ -1,6 +1,6 @@
 ---
 name: telecom-ont-maintenance
-description: 帮助用户在本人或明确授权的上海、浙江电信光猫上开启 Telnet 和 SSH、补齐 shell 常用命令。先确认后台管理路径并按实际 Web 流程登录，再临时开启 Telnet、安装并启用内网密钥 SSH，验证后关闭临时 Telnet，并按需补充 BusyBox 工具。用户说“按这个仓库帮我弄光猫”“Agent 登录光猫后台”“光猫开启 Telnet 和 SSH”“补齐光猫 shell”或“路由器后面访问光猫”时使用。不用于猜超密、绕过权限、刷机、修改光路身份或通用宽带提速。
+description: 帮助用户在本人或明确授权的上海、浙江电信光猫上开启 Telnet 和 SSH、补齐 shell 常用命令。先确认后台管理路径并按实际 Web 流程登录，再临时开启 Telnet、安装并启用内网密钥 SSH，验证后关闭临时 Telnet，并按需补充 BusyBox 工具。用户说“按这个仓库帮我弄光猫”“Agent 登录光猫后台”“光猫开启 Telnet 和 SSH”“补齐光猫 shell”或“路由器后面访问光猫”时使用。
 compatibility: 需要能读取仓库文件、执行命令并访问已授权管理网络的 Agent。真实登录需要机主合法取得的有效凭据，安装工具和修改设备需要明确批准。
 license: MIT
 ---
