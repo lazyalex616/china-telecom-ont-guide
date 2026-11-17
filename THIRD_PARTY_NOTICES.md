@@ -5,7 +5,11 @@
 - 中兴临时维护认证：[qiudz/zte-f7015tv3-telnet-solidify](https://github.com/qiudz/zte-f7015tv3-telnet-solidify) 及其 [webFac v3 协议说明](https://github.com/qiudz/zte-f7015tv3-telnet-solidify/blob/main/docs/webfac-v3-protocol.md)。
 - 爱快 CLI 和配套 Skill：[ikuaidev/ikuai-cli](https://github.com/ikuaidev/ikuai-cli)。
 - SSH：[Dropbear](https://github.com/mkj/dropbear) 和 [对应版本的许可](https://github.com/mkj/dropbear/blob/DROPBEAR_2026.94/LICENSE)，这次用的是 2026.94。
-- BusyBox：[plusls/busybox-static](https://github.com/plusls/busybox-static)，中兴这台用的是 1.37.0。
+- BusyBox：当前使用[官方BusyBox 1.38.0源码](https://busybox.net/downloads/busybox-1.38.0.tar.bz2)，加入OpenWrt的[netmsg补丁](https://github.com/openwrt/openwrt/blob/openwrt-24.10/package/utils/busybox/patches/210-add_netmsg_util.patch)和[lock补丁](https://github.com/openwrt/openwrt/blob/openwrt-24.10/package/utils/busybox/patches/220-add_lock_util.patch)，分别构建两种架构的静态程序。
+- 静态排障工具：[tcpdump](https://github.com/the-tcpdump-group/tcpdump)、[libpcap](https://github.com/the-tcpdump-group/libpcap)、[iperf3](https://github.com/esnet/iperf)、[ethtool](https://www.kernel.org/pub/software/network/ethtool/)和[strace](https://github.com/strace/strace)。
+- 后补工具：[OpenWrt 24.10.4官方软件源](https://downloads.openwrt.org/releases/24.10.4/packages/)及[packages构建配方](https://github.com/openwrt/packages/tree/openwrt-24.10)，选定工具和依赖库单独放置，不使用厂商opkg直接安装。
+- 早期BusyBox构建参考：[plusls/busybox-static](https://github.com/plusls/busybox-static)。
+- 界面拓展案例：[HS8546V5光猫补全Shell、切华为原厂界面](https://www.right.com.cn/forum/thread-4060870-1-1.html)，是外部机型案例，不是本次两台设备的刷机记录。
 
 ## 许可
 
